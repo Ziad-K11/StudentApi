@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using StudentApi.Data;
+using StudentApi.Repos;
 using StudentApi.Models;
-using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace StudentApi.Controllers
 {
@@ -9,63 +11,69 @@ namespace StudentApi.Controllers
     [Route("api/[controller]")]
     public class StudentsController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IStudent _repo;
 
-        public StudentsController(AppDbContext context)
+        public StudentsController(IStudent repo)
         {
-            _context = context;
+            _repo = repo;
         }
 
-        // GET: api/Students
+
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Student>>> GetStudents()
+        public async Task<IActionResult> GetStudents()
         {
-            return await _context.Students.ToListAsync();
+            var students = await _repo.GetStudentsAs();
+            return Ok(students);
         }
 
-        // GET: api/Students/{id}
+
         [HttpGet("{id}")]
-        public async Task<ActionResult<Student>> GetStudent(int id)
+        public async Task<IActionResult> GetStudent(int id)
         {
-            var student = await _context.Students.FindAsync(id);
+            var student = await _repo.GetStudentAs(id);
 
             if (student == null)
             {
                 return NotFound();
             }
 
-            return student;
+            return Ok(student);
         }
 
-        // POST: api/Students
+
         [HttpPost]
-        public async Task<ActionResult<Student>> AddStudent(Student student)
+        public async Task<IActionResult> AddStudent([FromBody] Student student)
         {
-            _context.Students.Add(student);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetStudent), new { id = student.Id }, student);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            try
+            {
+                var newStudent = await _repo.AddStudentAs(student);
+                return CreatedAtAction(nameof(GetStudent), new { id = newStudent.Id }, newStudent);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
-        // PUT: api/Students/{id}
+
         [HttpPut("{id}")]
-        public IActionResult UpdateStudent(int id, [FromBody] Student updatedStudent)
+        public async Task<IActionResult> UpdateStudent(int id, [FromBody] Student student)
         {
-            if (id != updatedStudent.Id)
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            if (id != student.Id)
             {
-                return BadRequest("Id in URL and body must match.");
+                return BadRequest("ID's don't match");
             }
-
-            var existingStudent = _context.Students.FirstOrDefault(s => s.Id == id);
-            if (existingStudent == null)
+            var oldStudent = await _repo.GetStudentAs(id);
+            if (oldStudent == null)
             {
-                return NotFound($"Student with Id {id} not found.");
+                return NotFound();
             }
-
-            existingStudent.Name = updatedStudent.Name;
-            existingStudent.Grade = updatedStudent.Grade;
-
-            _context.SaveChanges();
+            await _repo.UpdateStudentAs(student);
             return NoContent();
         }
 
@@ -73,14 +81,13 @@ namespace StudentApi.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStudent(int id)
         {
-            var student = await _context.Students.FindAsync(id);
+            var student = await _repo.GetStudentAs(id);
             if (student == null)
             {
                 return NotFound();
             }
 
-            _context.Students.Remove(student);
-            await _context.SaveChangesAsync();
+            await _repo.DeleteStudentAs(id);
 
             return NoContent();
         }
