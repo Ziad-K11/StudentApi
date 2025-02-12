@@ -3,17 +3,18 @@ using StudentApi.Repos;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddSingleton<IStudent, StudentRepo>();
+builder.Services.AddSingleton<IStudentRepo, StudentRepo>();
+builder.Services.AddSingleton<ICourseRepo, CourseRepo>();
+builder.Services.AddSingleton<IStudentCourseRepo, StudentCourseRepo>();
 var app = builder.Build();
 
 
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

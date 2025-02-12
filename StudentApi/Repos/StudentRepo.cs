@@ -6,7 +6,7 @@ using StudentApi.Models;
 
 namespace StudentApi.Repos
 {
-    public class StudentRepo : IStudent
+    public class StudentRepo : IStudentRepo
     {
         private readonly List<Student> students;
         public StudentRepo()
@@ -21,17 +21,17 @@ namespace StudentApi.Repos
 
         }
 
-        public async Task<List<Student>> GetStudentsAs()
+        public async Task<List<Student>> GetStudentsAsync()
         {
             return await Task.FromResult(students.ToList());
         }
-        public async Task<Student> GetStudentAs(int id)
+        public async Task<Student> GetStudentAsync(int id)
         {
             var student = students.FirstOrDefault(s => s.Id == id);
             return await Task.FromResult(student);
         }
 
-        public async Task<Student> AddStudentAs(Student student)
+        public async Task<Student> AddStudentAsync(Student student)
         {
             if (students.Any(s => s.Id == student.Id))
             {
@@ -41,7 +41,7 @@ namespace StudentApi.Repos
             students.Add(student);
             return await Task.FromResult(student);
         }
-        public async Task UpdateStudentAs(Student NewStudent)
+        public async Task UpdateStudentAsync(Student NewStudent)
         {
             var existingStudent = students.FirstOrDefault(s => s.Id == NewStudent.Id);
             if (existingStudent != null)
@@ -51,7 +51,7 @@ namespace StudentApi.Repos
             }
             await Task.CompletedTask;
         }
-        public async Task DeleteStudentAs(int id)
+        public async Task DeleteStudentAsync(int id)
         {
             var student = students.FirstOrDefault(s => s.Id == id);
             if (student != null)
