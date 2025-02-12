@@ -23,68 +23,40 @@ namespace StudentApi.Repos
 
         public async Task<List<Student>> GetStudentsAs()
         {
-            var query = from student in students
-                        select student;
-            return await Task.FromResult(query.ToList());
+            return await Task.FromResult(students.ToList());
         }
         public async Task<Student> GetStudentAs(int id)
         {
-            var query = from student in students
-                        where student.Id == id
-                        select student;
-            return await Task.FromResult(query.FirstOrDefault());
+            var student = students.FirstOrDefault(s => s.Id == id);
+            return await Task.FromResult(student);
         }
 
         public async Task<Student> AddStudentAs(Student student)
         {
-            var query = from s in students
-                        where s.Id == student.Id
-                        select s;
-            bool exist = false;
-            foreach (var s in query)
+            if (students.Any(s => s.Id == student.Id))
             {
-                exist = true;
-                break;
+                throw new ArgumentException("A student with the given ID already exists.");
             }
-            if (exist)
-            {
-                throw new ArgumentException("ID already exists");
-            }
+
             students.Add(student);
             return await Task.FromResult(student);
         }
         public async Task UpdateStudentAs(Student NewStudent)
         {
-            var query = from student in students
-                        where student.Id == NewStudent.Id
-                        select student;
-            Student updatingStudent = null;
-            foreach (var student in query)
+            var existingStudent = students.FirstOrDefault(s => s.Id == NewStudent.Id);
+            if (existingStudent != null)
             {
-                updatingStudent = student;
-                break;
-            }
-            if (updatingStudent != null)
-            {
-                updatingStudent.Name = NewStudent.Name;
-                updatingStudent.Grade = NewStudent.Grade;
+                existingStudent.Name = NewStudent.Name;
+                existingStudent.Grade = NewStudent.Grade;
             }
             await Task.CompletedTask;
         }
         public async Task DeleteStudentAs(int id)
         {
-            var query = from student in students
-                        where student.Id == id
-                        select student;
-            Student deletedStudent = null;
-            foreach (var student in query)
+            var student = students.FirstOrDefault(s => s.Id == id);
+            if (student != null)
             {
-                deletedStudent = student;
-                break;
-            }
-            if (deletedStudent != null)
-            {
-                students.Remove(deletedStudent);
+                students.Remove(student);
             }
             await Task.CompletedTask;
         }

@@ -46,15 +46,8 @@ namespace StudentApi.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            try
-            {
-                var newStudent = await _repo.AddStudentAs(student);
-                return CreatedAtAction(nameof(GetStudent), new { id = newStudent.Id }, newStudent);
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var newStudent = await _repo.AddStudentAs(student);
+            return CreatedAtAction(nameof(GetStudent), new { id = newStudent.Id }, newStudent);
         }
 
 
@@ -77,7 +70,7 @@ namespace StudentApi.Controllers
             return NoContent();
         }
 
-        // DELETE: api/Students/{id}
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStudent(int id)
         {
