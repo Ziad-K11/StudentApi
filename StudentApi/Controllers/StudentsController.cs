@@ -2,6 +2,7 @@
 using StudentApi.Repos;
 using StudentApi.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace StudentApi.Controllers
 {
@@ -14,23 +15,25 @@ namespace StudentApi.Controllers
         private readonly IStudentCourseRepo _studentCourseRepo;
 
 
-        public StudentsController(IStudentRepo repo, ICourseRepo courseRepo,IStudentCourseRepo studentCourseRepo)
+        public StudentsController(IStudentRepo repo, ICourseRepo courseRepo, IStudentCourseRepo studentCourseRepo)
         {
             _repo = repo;
             _courseRepo = courseRepo;
             _studentCourseRepo = studentCourseRepo;
         }
 
-        // GET: api/Students
+
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<Student>>> GetStudents()
         {
             var students = await _repo.GetStudentsAsync();
             return Ok(students);
         }
 
-        // GET: api/Students/{id}
+
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<Student>> GetStudent(int id)
         {
             var student = await _repo.GetStudentAsync(id);
@@ -43,8 +46,9 @@ namespace StudentApi.Controllers
             return student;
         }
 
-        // POST: api/Students
+
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<Student>> AddStudent(Student student)
         {
             if (!ModelState.IsValid)
@@ -53,9 +57,10 @@ namespace StudentApi.Controllers
             return CreatedAtAction(nameof(GetStudent), new { id = newStudent.Id }, newStudent);
         }
 
-        // PUT: api/Students/{id}
+
         [HttpPut("{id}")]
-       public async Task<IActionResult> UpdateStudent(int id, [FromBody] Student student)
+        [Authorize]
+        public async Task<IActionResult> UpdateStudent(int id, [FromBody] Student student)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -73,8 +78,9 @@ namespace StudentApi.Controllers
             return NoContent();
         }
 
-        // DELETE: api/Students/{id}
+
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteStudent(int id)
         {
             var student = await _repo.GetStudentAsync(id);
@@ -87,15 +93,17 @@ namespace StudentApi.Controllers
 
             return NoContent();
         }
-        
+
         [HttpGet("courses")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetCoursesAsync()
         {
             var courses = await _courseRepo.GetCoursesAsync();
             return Ok(courses);
         }
 
-        [HttpGet("{id}/courses")]
+        [HttpGet("courses/{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetCourseAsync(int id)
         {
             var student = await _courseRepo.GetCourseAsync(id);
@@ -108,6 +116,7 @@ namespace StudentApi.Controllers
             return Ok(student);
         }
         [HttpPost("enroll")]
+        [Authorize]
         public async Task<IActionResult> EnrollStudentToCourse(int studentId, int courseId)
         {
             var student = await _repo.GetStudentAsync(studentId);
@@ -123,6 +132,7 @@ namespace StudentApi.Controllers
         }
 
         [HttpDelete("remove")]
+        [Authorize]
         public async Task<IActionResult> RemoveStudentFromCourse(int studentId, int courseId)
         {
             var student = await _repo.GetStudentAsync(studentId);
@@ -138,6 +148,7 @@ namespace StudentApi.Controllers
         }
 
         [HttpGet("courses-with-students")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetCoursesWithEnrolledStudents()
         {
             var students = await _repo.GetStudentsAsync();
